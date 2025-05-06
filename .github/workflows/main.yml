@@ -32,15 +32,15 @@ jobs:
 
       - name: Terraform init
         run: Terraform init
-        working-directory: ./terraform
+        working-directory: ./infra
 
       - name: Terraform Plan
         run: Terraform plan
-        working-directory: ./terraform
+        working-directory: ./infra
 
       - name: Terraform Apply
         run: Terraform apply -auto-approve
-        working-directory: ./terraform
+        working-directory: ./infra
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
