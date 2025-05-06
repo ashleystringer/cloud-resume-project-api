@@ -31,15 +31,15 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform init
-        run: Terraform init
+        run: terraform init
         working-directory: infra
 
       - name: Terraform Plan
-        run: Terraform plan
+        run: terraform plan
         working-directory: infra
 
       - name: Terraform Apply
-        run: Terraform apply -auto-approve
+        run: terraform apply -auto-approve
         working-directory: infra
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
