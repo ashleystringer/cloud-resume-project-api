@@ -1,11 +1,17 @@
+from os import environ
 import json
 import boto3
 from decimal import Decimal
 
 client = boto3.client('dynamodb')
 dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table('visitor-count-table')
+
+environ["DYNAMODB_TABLE_NAME"] = "visitor-count-table"
+tableName = environ["DYNAMODB_TABLE_NAME"]
 tableName = 'visitor-count-table'
+
+table = dynamodb.Table(tableName) ## Figure out how to make this testable.
+##table = dynamodb.Table('visitor-count-table') ## Figure out how to make this testable.
 
 
 def lambda_handler(event, context):
@@ -59,7 +65,7 @@ def lambda_handler(event, context):
     body = json.dumps(body)
 
     return {
-        'statusCode': 200,
+        'statusCode': statusCode,
         'headers': {
             "Content-Type": "application/json",
             'Access-Control-Allow-Origin': 'https://cdn.ash-stringer-resume-project.com',
