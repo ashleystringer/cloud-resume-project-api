@@ -57,3 +57,7 @@ resource "aws_apigatewayv2_deployment" "deploy" {
     aws_apigatewayv2_integration.put_route_integration    
     ]
 }
+
+output "api_gateway_url" {
+  value = aws_apigatewayv2_api.root.api_endpoint
+}

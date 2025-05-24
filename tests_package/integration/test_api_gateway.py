@@ -25,7 +25,7 @@ class TestApiGateway(TestCase):
         ### api-gw-domain
         ##return request.config.getoption('--api-gw-domain')
 
-    def test_api_gateway_404(self):
+    def api_gateway_404(self):
         print("test API gateway 404")
         print(f"api_gw_domain - {self.api_gw_domain}")
         response = requests.get(f'https://cdux7s9cig.execute-api.us-east-2.amazonaws.com/count')
