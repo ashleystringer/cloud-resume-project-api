@@ -1,6 +1,14 @@
 resource "aws_apigatewayv2_api" "root" {
   name          = "root-http-api"
   protocol_type = "HTTP"
+  cors_configuration {
+    allow_methods = ["*"]
+    allow_headers = ["authorization"]
+    expose_headers = ["date", "api-id"]
+    allow_origins = ["*"] //change this
+    allow_credentials = false
+    max_age = 300
+  }
 }
 
 
