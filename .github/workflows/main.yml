@@ -30,7 +30,10 @@ jobs:
           pip install pytest
 
         ##Output should be a config file and zipped up Lambda file
-  Deploy:
+  
+  DeployTestSite:
+    runs-on: ubuntu-latest
+    steps:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -38,40 +41,47 @@ jobs:
         run: terraform init
         working-directory: infra
 
+      - name: Terraform plan
+        run: terraform plan
+        working-directory: infra
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
+        working-directory: infra
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_TEST_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_TEST_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+  
+  SmokeTest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run End-To-End Test
+        run: pytest tests_package e2e/e2e_test.py
+
+      - name: Terraform Destroy on Test
+        run: terraform destroy -auto-approve
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: infra
+  
+  DeployProductionSite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Terraform Init
+        run: terraform init
+        working-directory: infra
+
       - name: Terraform Plan
         run: terraform plan
         working-directory: infra
 
-      - name: Terraform Apply to Testing
-        ##run: Terraform apply -auto-approve
-        working-directory: ./infra
-        env:
-          AWS_TEST_ACCESS_KEY_ID: ${{ secrets.AWS_TEST_ACCESS_KEY_ID }}
-          AWS_TEST_SECRET_ACCESS_KEY: ${{ secrets.AWS_TEST_SECRET_ACCESS_KEY }}
-          AWS_TEST_REGION: ${{ env.AWS_TEST_REGION }}
-    
-    SmokeTest:
-      - name: Set up environment variables
-        
-      
-      - name: Run End-to-End test
-        run: pytest tests_package e2e/e2e_test.py
-      
-      - name: Terraform Destroy on Test
-        run: terraform destroy -auto-approve
-      
-      - name: Terraform Init
-        run: Terraform init
-        working-directory: ./infra
-      
-      - name: Terraform Apply to Prod 
-        ##run: Terraform apply -auto-approves
-        working-directory: ./infra
-
-      - name: Terraform Apply
+      - name: Terraform Apply to Prod
         run: terraform apply -auto-approve
         working-directory: infra
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_PROD_REGION: ${{ env.AWS_PROD_REGION }
+          AWS_REGION: ${{ env.AWS_REGION }}
+      
