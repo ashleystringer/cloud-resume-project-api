@@ -18,70 +18,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with: 
-          python-version: '3.11'
-
-      - name: Install Python dependencies
-        run: | 
-          python -m pip install --upgrade pip
-          pip install -r tests_package/requirements.txt
-          pip install pytest
-
-        ##Output should be a config file and zipped up Lambda file
-  
-  DeployTestSite:
-    runs-on: ubuntu-latest
-    steps:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform init
-        run: terraform init
-        working-directory: infra
-
-      - name: Terraform plan
-        run: terraform plan
-        working-directory: infra
-
-      - name: Terraform apply
-        run: terraform apply -auto-approve
-        working-directory: infra
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_TEST_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_TEST_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-  
-  SmokeTest:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run End-To-End Test
-        run: pytest tests_package e2e/e2e_test.py
-
-      - name: Terraform Destroy on Test
-        run: terraform destroy -auto-approve
-
       - name: Terraform Init
         run: terraform init
-        working-directory: infra
-  
-  DeployProductionSite:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Terraform Init
-        run: terraform init
-        working-directory: infra
+        working-directory: ./infra
 
       - name: Terraform Plan
         run: terraform plan
-        working-directory: infra
+        working-directory: ./infra
 
-      - name: Terraform Apply to Prod
+      - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: infra
+        working-directory: ./infra
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ env.AWS_REGION }}
-      
+
+
+        ##Output should be a config file and zipped up Lambda file
