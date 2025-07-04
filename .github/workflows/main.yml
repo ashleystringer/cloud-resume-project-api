@@ -2,10 +2,6 @@ name: Test and Deploy
 
 on: [push]
 
-## Build stage: Your output at this stage should be a zipped-up Lambda function artifact and a config file ready to deploy your resources.
-## Deploy stage: Run your IaC tool to deploy the resources in AWS.
-## Smoke test stage: Run your Cypress (or Playwright) API tests to make sure the deployed API does what you think it should.
-
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -33,5 +29,36 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ env.AWS_REGION }}
 
+  Test:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        ##Output should be a config file and zipped up Lambda file
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests_package/requirements
+          pip install pytest
+
+      - name: Get API Gateway URL
+        run: export API_URL=$(terraform output -raw api_gateway_url)
+        working-directory: ./infra
+
+      - name: Run E2E Tests
+        run: pytest tests_package/e2e/e2e_test.py
+
+  Destroy:
+    runs-on: ubuntu-latest
+    needs: [Build, Test]
+    steps:
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: ./infra
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}

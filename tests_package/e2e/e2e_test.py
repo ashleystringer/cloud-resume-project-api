@@ -3,15 +3,21 @@ from playwright.sync_api import Playwright, APIRequestContext
 import os
 from typing import Generator
 
-api_url = "https://{API_ID}.execute-api.{AWS_REGION}.amazonaws.com/count"
+##api_url = "https://{API_ID}.execute-api.{AWS_REGION}.amazonaws.com/count"
+api_url = os.environ.get("API_URL") + '/count'
 
 @pytest.fixture(scope="session")
 def api_request_context(
     playwright: Playwright,
 ) -> Generator[APIRequestContext, None, None]:
-    
+    '''
     request_context = playwright.request.new_context(
         base_url="https://{API_ID}.execute-api.{AWS_REGION}.amazonaws.com"
+    )
+    '''
+    
+    request_context = playwright.request.new_context(
+        base_url = api_url
     )
 
     yield request_context
