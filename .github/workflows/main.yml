@@ -45,6 +45,9 @@ jobs:
         working-directory: ./
     needs: build
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - name: Set API name
         run: echo "api_url=${{ needs.build.outputs.api_url }}" >> $GITHUB_ENV
       
