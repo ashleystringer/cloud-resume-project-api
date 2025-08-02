@@ -3,27 +3,18 @@ name: Test and Deploy
 on: [push]
 
 jobs:
-  Build:
+  build:
     runs-on: ubuntu-latest
 
     env: 
       AWS_REGION: us-east-2
       AWS_TEST_REGION: us-east-2
 
+    outputs:
+      api_url: ${{ steps.get_api_url.outputs.api_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Python Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r tests_package/requirements.txt
-          pip install pytest
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -39,21 +30,40 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ env.AWS_REGION }}
-
-  Test:
-    runs-on: ubuntu-latest
-    needs: Build
-    steps:
+  
       - name: Get API Gateway URL
-        run: export API_URL=$(terraform output -raw api_gateway_url)
+        id: get_api_url
+        run: | 
+          API_URL=$(terraform output -raw api_url)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
         working-directory: ./infra
 
-      - name: Run E2E Tests
-        run: pytest tests_package/e2e/e2e_test.py
-
-  Destroy:
+  test:
     runs-on: ubuntu-latest
-    needs: [Build, Test]
+    needs: build
+    steps:
+      - name: Set API name
+        run: echo "api_url=${{ needs.build.outputs.api_url }}" >> $GITHUB_ENV
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests_package/requirements.txt
+          pip install pytest
+
+      - name: Run E2E Tests
+        run: |
+          export API_URL=$api_url
+          pytest tests_package/e2e/e2e_test.py
+
+  destroy:
+    runs-on: ubuntu-latest
+    needs: [build, test]
     steps:
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
