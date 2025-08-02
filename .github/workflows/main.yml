@@ -34,7 +34,7 @@ jobs:
       - name: Get API Gateway URL
         id: get_api_url
         run: | 
-          API_URL=$(terraform output -raw api_url)
+          API_URL=$(terraform output -raw api_gateway_url)
           echo "api_url=$API_URL" >> $GITHUB_OUTPUT
         working-directory: ./infra
 
